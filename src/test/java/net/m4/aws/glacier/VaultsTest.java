@@ -7,6 +7,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -63,7 +64,7 @@ public class VaultsTest {
 		assertTrue("Successfully completed.", true);
 	}
 
-	@Test
+	@Test @Ignore
 	public void testInitiateJobInventoryRetrieval() throws IOException {
 		InitiateJobRequest initJobRequest = new InitiateJobRequest()
 				.withVaultName("testvault")
@@ -71,7 +72,7 @@ public class VaultsTest {
 
 		InitiateJobResult initJobResult = client.initiateJob(initJobRequest);
 		jobId = initJobResult.getJobId();
-		System.out.print("Job ID: " + jobId);
+		System.out.println("Job ID: " + jobId);
 
 		assertTrue("Successfully completed.", true);
 	}
@@ -83,6 +84,7 @@ public class VaultsTest {
 		ListJobsResult result = client.listJobs(request);
 		for (GlacierJobDescription job : result.getJobList()) {
 			System.out.println(job);
+//			jobId = job.getJobId();
 		}
 
 		assertTrue("Successfully completed.", true);
