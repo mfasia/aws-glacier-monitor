@@ -3,6 +3,9 @@ AWS Glacier Monitor
 
 Monitor AWS Glacier vaults, jobs and archives.
 
+Tools:
+* https://github.com/vsespb/mt-aws-glacier
+
 References:
 * http://docs.aws.amazon.com/amazonglacier/latest/dev/introduction.html
 * http://docs.aws.amazon.com/amazonglacier/latest/dev/using-aws-sdk-for-java.html
