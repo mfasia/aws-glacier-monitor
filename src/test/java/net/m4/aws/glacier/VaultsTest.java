@@ -51,16 +51,16 @@ public class VaultsTest {
 	ObjectMapper mapper;
 
 	// metafour - backup
-//	String vaultName = "Backup";
-//	String jobId = "-X-U6-WqL3HUWbNBtjtif_Jr2L7yWGVwWJ2hAfC4-3JgD_diQ9n92uf_y-bzP01jGrY0ajfw7W-mypRTL42NsoKYEclD";
-//	String archiveId = "";
+	String vaultName = "Backup";
+	String jobId = "-X-U6-WqL3HUWbNBtjtif_Jr2L7yWGVwWJ2hAfC4-3JgD_diQ9n92uf_y-bzP01jGrY0ajfw7W-mypRTL42NsoKYEclD";
+	String archiveId = "";
 
 	// ftahmed - glacier
-	String vaultName = "testvault";
+//	String vaultName = "testvault";
 //	String jobId = "VmWAzSDpMk6KoR_e5AvdUSrrh42y4ay6pvkgX10UsfTwV7hlz0ShIraU9wRsFuW69nlb7EBEvRIinzJp6BHKg3YXZ9TT"; // Inventory retrieval
 //	String jobId = "12Tb4wniPRDLmCn9DrfrBaDiwY5Wz744EMihqcpTuRPlDgxrFT7_Qxp25VVPhDU7asWf_ZMvUFFLa0TZ9aDch80weV5j"; // Inventory retrieval
-	String jobId = "UYVO1FsZ8_LnOEEBVa-rM3kQ4s7s6-nfeWsdH9-2DCZzKYc6LAYOrc9nApfNnfh75r1dPpsMO8rLwmtYt0pG56eeI5Bj"; // Archive retrieval
-	String archiveId = "gxrGyk6m8ccwFf59SF4gH9OK6w3T638L7NB64camYUtwtWUCtZ0MAyO6JtUnbr6lHaT-kJwSmYMj-DxZS7VRiHPhoQjLAMuRBabldnhtwMv8909W2bK67xmtXiNyQsP4b-UAqBOwvg";
+//	String jobId = "UYVO1FsZ8_LnOEEBVa-rM3kQ4s7s6-nfeWsdH9-2DCZzKYc6LAYOrc9nApfNnfh75r1dPpsMO8rLwmtYt0pG56eeI5Bj"; // Archive retrieval
+//	String archiveId = "gxrGyk6m8ccwFf59SF4gH9OK6w3T638L7NB64camYUtwtWUCtZ0MAyO6JtUnbr6lHaT-kJwSmYMj-DxZS7VRiHPhoQjLAMuRBabldnhtwMv8909W2bK67xmtXiNyQsP4b-UAqBOwvg";
 
 	/**
 	 * Initialises AWS client and Jackson JSON mapper objects.
@@ -284,9 +284,9 @@ public class VaultsTest {
 		DescribeJobRequest request = new DescribeJobRequest()
 				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
 		DescribeJobResult result = client.describeJob(request);
-		assertEquals("ArchiveRetrieval", result.getAction());
 		System.out.println("Job details:");
 		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+		assertEquals("ArchiveRetrieval", result.getAction());
 		
 		GetJobOutputRequest jorequest = new GetJobOutputRequest()
 				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
