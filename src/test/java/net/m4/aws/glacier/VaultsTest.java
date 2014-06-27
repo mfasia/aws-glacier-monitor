@@ -97,9 +97,10 @@ public class VaultsTest {
 		GetJobOutputResult result = client.getJobOutput(request);
 
 		BufferedInputStream bis = new BufferedInputStream(result.getBody());
+		System.out.println("Job output:");
 		byte[] buf = new byte[1024];
 		while (bis.read(buf) != -1) {
-			System.out.print(buf.toString());
+			System.out.print(new String(buf));
 		}
 
 		assertTrue("Successfully completed.", true);
