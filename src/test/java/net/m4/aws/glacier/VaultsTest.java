@@ -1,10 +1,10 @@
 package net.m4.aws.glacier;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -13,6 +13,8 @@ import org.junit.Test;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.glacier.AmazonGlacierClient;
+import com.amazonaws.services.glacier.model.DescribeJobRequest;
+import com.amazonaws.services.glacier.model.DescribeJobResult;
 import com.amazonaws.services.glacier.model.DescribeVaultOutput;
 import com.amazonaws.services.glacier.model.GetJobOutputRequest;
 import com.amazonaws.services.glacier.model.GetJobOutputResult;
@@ -24,13 +26,26 @@ import com.amazonaws.services.glacier.model.ListJobsRequest;
 import com.amazonaws.services.glacier.model.ListJobsResult;
 import com.amazonaws.services.glacier.model.ListVaultsRequest;
 import com.amazonaws.services.glacier.model.ListVaultsResult;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 public class VaultsTest {
 
 	AWSCredentials credentials;
 	AmazonGlacierClient client;
-	String jobId = "VmWAzSDpMk6KoR_e5AvdUSrrh42y4ay6pvkgX10UsfTwV7hlz0ShIraU9wRsFuW69nlb7EBEvRIinzJp6BHKg3YXZ9TT";
+	
+	// metafour - backup
+	String vaultName = "Backup";
+	String jobId = "-X-U6-WqL3HUWbNBtjtif_Jr2L7yWGVwWJ2hAfC4-3JgD_diQ9n92uf_y-bzP01jGrY0ajfw7W-mypRTL42NsoKYEclD";
+	String archiveId = "";
+
+	// ftahmed - glacier
+//	String vaultName = "testvault";
+//	String jobId = "VmWAzSDpMk6KoR_e5AvdUSrrh42y4ay6pvkgX10UsfTwV7hlz0ShIraU9wRsFuW69nlb7EBEvRIinzJp6BHKg3YXZ9TT";
+//	String jobId = "12Tb4wniPRDLmCn9DrfrBaDiwY5Wz744EMihqcpTuRPlDgxrFT7_Qxp25VVPhDU7asWf_ZMvUFFLa0TZ9aDch80weV5j";
+//	String archiveId = "gxrGyk6m8ccwFf59SF4gH9OK6w3T638L7NB64camYUtwtWUCtZ0MAyO6JtUnbr6lHaT-kJwSmYMj-DxZS7VRiHPhoQjLAMuRBabldnhtwMv8909W2bK67xmtXiNyQsP4b-UAqBOwvg";
 	
 	ObjectMapper mapper;
 
@@ -44,15 +59,17 @@ public class VaultsTest {
 
 		mapper = new ObjectMapper();
 		// mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
-
+		
+		// NOTE: http://wiki.fasterxml.com/JacksonMixInAnnotations
+		// NOTE: http://wiki.fasterxml.com/JacksonFeatureModules
+		mapper.registerModule(new VaultsTestModule());
 	}
 
 	@Test
 	public void testListVaults() throws IOException {
 		ListVaultsRequest request = new ListVaultsRequest().withAccountId("-");
 		ListVaultsResult result = client.listVaults(request);
-		assertFalse("Failed to get the list of vaults!", result.getVaultList()
-				.size() == 0);
+		assertFalse("Failed to get the list of vaults!", result.getVaultList().size() == 0);
 
 		for (DescribeVaultOutput vault : result.getVaultList()) {
 			// System.out.println(vault.toString());
@@ -64,10 +81,49 @@ public class VaultsTest {
 		assertTrue("Successfully completed.", true);
 	}
 
-	@Test @Ignore
+	@Test
+	public void testListJobsInAVault() throws IOException {
+		ListJobsRequest request = new ListJobsRequest().withVaultName(vaultName);
+
+		ListJobsResult result = client.listJobs(request);
+		System.out.println("Jobs: " + result.getJobList().size());
+		for (GlacierJobDescription job : result.getJobList()) {
+//			System.out.println(job);
+//			jobId = job.getJobId();
+			System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(job));
+		}
+
+		assertTrue("Successfully completed.", true);
+	}
+	
+	@Test
+	public void testListJobsInAllVaults() throws IOException {
+		ListVaultsRequest request = new ListVaultsRequest().withAccountId("-");
+		ListVaultsResult result = client.listVaults(request);
+		assertFalse("Failed to get the list of vaults!", result.getVaultList().size() == 0);
+
+		for (DescribeVaultOutput vault : result.getVaultList()) {
+			System.out.println("=== Vault: " + vault.getVaultName() + " ===");
+			System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(vault));
+			ListJobsRequest jlrequest = new ListJobsRequest().withVaultName(vault.getVaultName());
+
+			ListJobsResult jlresult = client.listJobs(jlrequest);
+			System.out.println("Jobs: " + jlresult.getJobList().size());
+			for (GlacierJobDescription job : jlresult.getJobList()) {
+//				System.out.println(job);
+//				jobId = job.getJobId();
+				System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(job));
+			}
+		}
+
+		assertTrue("Successfully completed.", true);
+	}
+
+	@Test
+	@Ignore
 	public void testInitiateJobInventoryRetrieval() throws IOException {
 		InitiateJobRequest initJobRequest = new InitiateJobRequest()
-				.withVaultName("testvault")
+				.withAccountId("-").withVaultName(vaultName)
 				.withJobParameters(new JobParameters().withType("inventory-retrieval"));
 
 		InitiateJobResult initJobResult = client.initiateJob(initJobRequest);
@@ -78,32 +134,129 @@ public class VaultsTest {
 	}
 	
 	@Test
-	public void testListJobs() throws IOException {
-		ListJobsRequest request = new ListJobsRequest().withVaultName("testvault");
+	public void testJobOutputInventoryRetrieval() throws IOException {
+		DescribeJobRequest request = new DescribeJobRequest()
+				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
+		DescribeJobResult result = client.describeJob(request);
+		assertEquals("InventoryRetrieval", result.getAction());
+		System.out.println("Job details:");
+		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+		
+		GetJobOutputRequest jorequest = new GetJobOutputRequest()
+				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
+		GetJobOutputResult joresult = client.getJobOutput(jorequest);
 
-		ListJobsResult result = client.listJobs(request);
-		for (GlacierJobDescription job : result.getJobList()) {
-			System.out.println(job);
-//			jobId = job.getJobId();
+		StringBuilder sb = new StringBuilder();
+		BufferedReader br = new BufferedReader(new InputStreamReader(joresult.getBody()));
+		String line;
+		while ((line = br.readLine()) != null) {
+			sb.append(line);
 		}
+		System.out.println("Job output:");
+//		System.out.println(sb.toString());
+		Object json = mapper.readValue(sb.toString(), Object.class);
+		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json));
 
 		assertTrue("Successfully completed.", true);
 	}
 
 	@Test
-	public void testJobOutput() throws IOException {
-		GetJobOutputRequest request = new GetJobOutputRequest()
-				.withAccountId("-").withVaultName("testvault").withJobId(jobId);
-		GetJobOutputResult result = client.getJobOutput(request);
-
-		BufferedInputStream bis = new BufferedInputStream(result.getBody());
-		System.out.println("Job output:");
-		byte[] buf = new byte[1024];
-		while (bis.read(buf) != -1) {
-			System.out.print(new String(buf));
+	public void testDownloadLatestInventory() throws IOException {
+		ListJobsRequest request = new ListJobsRequest().withVaultName(vaultName);
+		ListJobsResult result = client.listJobs(request);
+		System.out.println("Total Jobs: " + result.getJobList().size());
+		
+		GlacierJobDescription latestJob = null;
+		for (GlacierJobDescription job : result.getJobList()) {
+			if (job.isCompleted() && "Succeeded".equals(job.getStatusCode()) && "InventoryRetrieval".equals(job.getAction())) {
+				if (latestJob == null) {
+					latestJob = job;
+					continue;
+				}
+				if (job.getCompletionDate().compareTo(latestJob.getCompletionDate()) > 0) {
+					latestJob = job;
+				}
+			}
 		}
+		assertNotNull("There is no completed inventory job", latestJob);
+		System.out.println("The Latest Inventory Job:");
+		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(latestJob));
+		
+		jobId = latestJob.getJobId();
+		
+		GetJobOutputRequest jorequest = new GetJobOutputRequest()
+			.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
+		GetJobOutputResult joresult = client.getJobOutput(jorequest);
+		
+		StringBuilder sb = new StringBuilder();
+		BufferedReader br = new BufferedReader(new InputStreamReader(joresult.getBody()));
+		String line;
+		while ((line = br.readLine()) != null) {
+			sb.append(line);
+		}
+		System.out.println("The Latest Inventory:");
+		//System.out.println(sb.toString());
+		Object json = mapper.readValue(sb.toString(), Object.class);
+		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json));
 
 		assertTrue("Successfully completed.", true);
 	}
+	
+	@Test
+	@Ignore
+	public void testInitiateJobArchiveRetrieval() throws IOException {
+		InitiateJobRequest initJobRequest = new InitiateJobRequest()
+				.withAccountId("-").withVaultName(vaultName)
+				.withJobParameters(
+						new JobParameters()
+							.withType("archive-retrieval")
+							.withArchiveId(archiveId)
+						);
 
+		InitiateJobResult initJobResult = client.initiateJob(initJobRequest);
+		jobId = initJobResult.getJobId();
+		System.out.println("Job ID: " + jobId);
+		DescribeJobRequest request = new DescribeJobRequest()
+				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
+		DescribeJobResult result = client.describeJob(request);
+		assertEquals("ArchiveRetrieval", result.getAction());
+		System.out.println("Job details:");
+		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+
+		assertTrue("Successfully completed.", true);
+	}
+	
+	/**
+	 * Jackson JSON mapper configuration.
+	 *
+	 */
+	class VaultsTestModule extends SimpleModule {
+		private static final long serialVersionUID = -7213534997633659786L;
+
+		public VaultsTestModule() {
+			super("VaultsTestModule", new Version(0, 0, 1, null, null, null));
+		}
+
+		@Override
+		public void setupModule(SetupContext context) {
+			context.setMixInAnnotations(GlacierJobDescription.class, GlacierJobDescriptionMixIn.class);
+			context.setMixInAnnotations(DescribeJobResult.class, DescribeJobResultMixIn.class);
+			// and other set up, if any
+		}
+	}
+	
+	abstract class GlacierJobDescriptionMixIn extends GlacierJobDescription {
+		private static final long serialVersionUID = -1866228620607371709L;
+
+		@JsonIgnore
+		public abstract Boolean getCompleted(); // we don't need it!
+
+	}
+	
+	abstract class DescribeJobResultMixIn extends DescribeJobResult {
+		private static final long serialVersionUID = 8577745463832177536L;
+
+		@JsonIgnore
+		public abstract Boolean getCompleted(); // we don't need it!
+	}
 }
