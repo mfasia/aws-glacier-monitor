@@ -1,0 +1,6 @@
+[27-Jun-2014]
+* [TA] Tests for initiating and listing jobs and retrieving job output for both Inventory and Archive retrieval.
+
+[26-Jun-2014]
+* [TA] Test case for listing AWS Glacier vaults.
+* [TA] Start.
