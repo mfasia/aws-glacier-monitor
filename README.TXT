@@ -12,3 +12,7 @@ References:
 * http://docs.aws.amazon.com/IAM/latest/UserGuide/ManagingCredentials.html
 * http://wiki.fasterxml.com/JacksonMixInAnnotations
 * http://wiki.fasterxml.com/JacksonFeatureModules 
+
+Perl:
+* http://www.clockworksms.com/blog/creating-perl-module-rpms/
+* http://www.server-world.info/en/note?os=CentOS_6&p=cpan
