@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -53,7 +54,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
  */
 public class VaultsTest {
 	
-//	private static final Logger logger = Logger.
+	private static final Logger logger = Logger.getLogger(VaultsTest.class);
 
 	// AWS
 	public static AWSCredentials credentials;
@@ -113,16 +114,13 @@ public class VaultsTest {
 	public void testListVaults() throws IOException {
 		ListVaultsRequest request = new ListVaultsRequest().withAccountId("-");
 		ListVaultsResult result = glacierClient.listVaults(request);
-		assertFalse("Failed to get the list of vaults!", result.getVaultList().size() == 0);
+		assertFalse("There are no vaults!", result.getVaultList().size() == 0);
 
 		for (DescribeVaultOutput vault : result.getVaultList()) {
-			// System.out.println(vault.toString());
-			// Object json = mapper.readValue(vault.toString(), Object.class);
-			// System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json));
-			System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(vault));
+			logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(vault));
 		}
 
-		assertTrue("Successfully completed.", true);
+		assertTrue("Successfully completed.", result.getVaultList().size() > 0);
 	}
 
 	/**
@@ -133,16 +131,15 @@ public class VaultsTest {
 	@Test
 	public void testListJobsInAVault() throws IOException {
 		ListJobsRequest request = new ListJobsRequest().withVaultName(vaultName);
-
 		ListJobsResult result = glacierClient.listJobs(request);
-		System.out.println("Jobs: " + result.getJobList().size());
+		assertFalse(String.format("There are no jobs in %s!", vaultName), result.getJobList().size() == 0);
+		
+		logger.info(String.format("Jobs found: %d", result.getJobList().size()));
 		for (GlacierJobDescription job : result.getJobList()) {
-//			System.out.println(job);
-//			jobId = job.getJobId();
-			System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(job));
+			logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(job));
 		}
 
-		assertTrue("Successfully completed.", true);
+		assertTrue("Successfully completed.", result.getJobList().size() > 0);
 	}
 	
 	/**
@@ -154,19 +151,17 @@ public class VaultsTest {
 	public void testListJobsInAllVaults() throws IOException {
 		ListVaultsRequest request = new ListVaultsRequest().withAccountId("-");
 		ListVaultsResult result = glacierClient.listVaults(request);
-		assertFalse("Failed to get the list of vaults!", result.getVaultList().size() == 0);
+		assertFalse("There are no vaults!", result.getVaultList().size() == 0);
 
 		for (DescribeVaultOutput vault : result.getVaultList()) {
-			System.out.println("=== Vault: " + vault.getVaultName() + " ===");
-			System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(vault));
+			logger.info(String.format("Vault: %s", vault.getVaultName()));
+			logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(vault));
 			ListJobsRequest jlrequest = new ListJobsRequest().withVaultName(vault.getVaultName());
 
 			ListJobsResult jlresult = glacierClient.listJobs(jlrequest);
-			System.out.println("Jobs: " + jlresult.getJobList().size());
+			logger.info(String.format("Jobs in %s: %d", vault.getVaultName(), jlresult.getJobList().size()));
 			for (GlacierJobDescription job : jlresult.getJobList()) {
-//				System.out.println(job);
-//				jobId = job.getJobId();
-				System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(job));
+				logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(job));
 			}
 		}
 
@@ -187,7 +182,7 @@ public class VaultsTest {
 
 		InitiateJobResult initJobResult = glacierClient.initiateJob(initJobRequest);
 		jobId = initJobResult.getJobId();
-		System.out.println("Job ID: " + jobId);
+		logger.info("Job ID: " + jobId);
 
 		assertTrue("Successfully completed.", true);
 	}
@@ -203,8 +198,8 @@ public class VaultsTest {
 				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
 		DescribeJobResult result = glacierClient.describeJob(request);
 		assertEquals("InventoryRetrieval", result.getAction());
-		System.out.println("Job details:");
-		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+		logger.info("Job details:");
+		logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
 		
 		GetJobOutputRequest jorequest = new GetJobOutputRequest()
 				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
@@ -216,10 +211,10 @@ public class VaultsTest {
 		while ((line = br.readLine()) != null) {
 			sb.append(line);
 		}
-		System.out.println("Job output:");
-//		System.out.println(sb.toString());
+		logger.info("Job output:");
+//		logger.info(sb.toString());
 		Object json = mapper.readValue(sb.toString(), Object.class);
-		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json));
+		logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json));
 
 		assertTrue("Successfully completed.", true);
 	}
@@ -233,7 +228,7 @@ public class VaultsTest {
 	public void testDownloadLatestInventory() throws IOException {
 		ListJobsRequest request = new ListJobsRequest().withVaultName(vaultName);
 		ListJobsResult result = glacierClient.listJobs(request);
-		System.out.println("Total Jobs: " + result.getJobList().size());
+		logger.info("Total Jobs: " + result.getJobList().size());
 		
 		GlacierJobDescription latestJob = null;
 		for (GlacierJobDescription job : result.getJobList()) {
@@ -248,8 +243,8 @@ public class VaultsTest {
 			}
 		}
 		assertNotNull("There is no completed inventory job", latestJob);
-		System.out.println("The Latest Inventory Job:");
-		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(latestJob));
+		logger.info("The Latest Inventory Job:");
+		logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(latestJob));
 		
 		jobId = latestJob.getJobId();
 		
@@ -263,10 +258,10 @@ public class VaultsTest {
 		while ((line = br.readLine()) != null) {
 			sb.append(line);
 		}
-		System.out.println("The Latest Inventory:");
-		//System.out.println(sb.toString());
+		logger.info("The Latest Inventory:");
+		//logger.info(sb.toString());
 		Object json = mapper.readValue(sb.toString(), Object.class);
-		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json));
+		logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json));
 
 		assertTrue("Successfully completed.", true);
 	}
@@ -289,13 +284,13 @@ public class VaultsTest {
 
 		InitiateJobResult initJobResult = glacierClient.initiateJob(initJobRequest);
 		jobId = initJobResult.getJobId();
-		System.out.println("Job ID: " + jobId);
+		logger.info("Job ID: " + jobId);
 		DescribeJobRequest request = new DescribeJobRequest()
 				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
 		DescribeJobResult result = glacierClient.describeJob(request);
 		assertEquals("ArchiveRetrieval", result.getAction());
-		System.out.println("Job details:");
-		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+		logger.info("Job details:");
+		logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
 
 		assertTrue("Successfully completed.", true);
 	}
@@ -310,8 +305,8 @@ public class VaultsTest {
 		DescribeJobRequest request = new DescribeJobRequest()
 				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
 		DescribeJobResult result = glacierClient.describeJob(request);
-		System.out.println("Job details:");
-		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
+		logger.info("Job details:");
+		logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
 		assertEquals("ArchiveRetrieval", result.getAction());
 		
 		GetJobOutputRequest jorequest = new GetJobOutputRequest()
@@ -327,7 +322,7 @@ public class VaultsTest {
 		}
 		fos.close();
 		bis.close();
-		System.out.println("Job output: " + archiveToDownloadJob);
+		logger.info("Job output: " + archiveToDownloadJob);
 
 		assertTrue("Successfully completed.", true);
 	}
@@ -347,10 +342,10 @@ public class VaultsTest {
         UploadResult result = atm.upload("-", vaultName, "my archive " + (new Date()), new File(archiveToUpload), 
         		new ProgressListener() {
 					public void progressChanged(ProgressEvent e) {
-						System.out.println("Bytes transferred: " + e.getBytesTransferred());
+						logger.info("Bytes transferred: " + e.getBytesTransferred());
 					}
         		});
-        System.out.println("Archive ID: " + result.getArchiveId());
+        logger.info("Archive ID: " + result.getArchiveId());
 	}
 	
 	/**
@@ -361,14 +356,14 @@ public class VaultsTest {
 	public void testDownloadArchive() {
 		ArchiveTransferManager atm = new ArchiveTransferManager(glacierClient, sqsClient, snsClient);
         
-        System.out.println("Downloading Archive ID: " + archiveId);
+        logger.info("Downloading Archive ID: " + archiveId);
         atm.download("-", vaultName, archiveId, new File(archiveToDownloadAtm),//);
         		new ProgressListener() {
 					public void progressChanged(ProgressEvent e) {
-						System.out.println("Bytes transferred: " + e.getBytesTransferred());
+						logger.info("Bytes transferred: " + e.getBytesTransferred());
 					}
         		});
-        System.out.println("Atm output: " + archiveToDownloadAtm);
+        logger.info("Atm output: " + archiveToDownloadAtm);
 	}
 	
 	/**
