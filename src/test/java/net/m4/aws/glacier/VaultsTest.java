@@ -5,16 +5,22 @@ import static org.junit.Assert.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Date;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.PropertiesCredentials;
+import com.amazonaws.event.ProgressEvent;
+import com.amazonaws.event.ProgressListener;
 import com.amazonaws.services.glacier.AmazonGlacierClient;
 import com.amazonaws.services.glacier.model.DescribeJobRequest;
 import com.amazonaws.services.glacier.model.DescribeJobResult;
@@ -29,6 +35,10 @@ import com.amazonaws.services.glacier.model.ListJobsRequest;
 import com.amazonaws.services.glacier.model.ListJobsResult;
 import com.amazonaws.services.glacier.model.ListVaultsRequest;
 import com.amazonaws.services.glacier.model.ListVaultsResult;
+import com.amazonaws.services.glacier.transfer.ArchiveTransferManager;
+import com.amazonaws.services.glacier.transfer.UploadResult;
+import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.Version;
@@ -42,26 +52,36 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
  *
  */
 public class VaultsTest {
+	
+//	private static final Logger logger = Logger.
 
 	// AWS
-	AWSCredentials credentials;
-	AmazonGlacierClient client;
+	public static AWSCredentials credentials;
+	public static AmazonGlacierClient glacierClient;
+	public static AmazonSQSClient sqsClient;
+    public static AmazonSNSClient snsClient;
 
 	// Jackson JSON Mapper
 	ObjectMapper mapper;
 
 	// metafour - backup
-	String vaultName = "Backup";
-	String jobId = "-X-U6-WqL3HUWbNBtjtif_Jr2L7yWGVwWJ2hAfC4-3JgD_diQ9n92uf_y-bzP01jGrY0ajfw7W-mypRTL42NsoKYEclD";
-	String archiveId = "";
+//	String vaultName = "Backup";
+//	String jobId = "-X-U6-WqL3HUWbNBtjtif_Jr2L7yWGVwWJ2hAfC4-3JgD_diQ9n92uf_y-bzP01jGrY0ajfw7W-mypRTL42NsoKYEclD";
+//	String archiveId = "DHPLE7Zkq2fp3bjlaxBOLBKiQzE-7zWLVc9BEz1T1bwzAYDnAdVu_kXVwO8wLrX5T4DvA_IUVSXWJe5hlaPXuMazfGf9k-wkBfy7BHV0L2quqPlAWjm5bpOSoRV6Q-spaw0nKCqttQ";
 
 	// ftahmed - glacier
-//	String vaultName = "testvault";
+	String vaultName = "testvault";
 //	String jobId = "VmWAzSDpMk6KoR_e5AvdUSrrh42y4ay6pvkgX10UsfTwV7hlz0ShIraU9wRsFuW69nlb7EBEvRIinzJp6BHKg3YXZ9TT"; // Inventory retrieval
 //	String jobId = "12Tb4wniPRDLmCn9DrfrBaDiwY5Wz744EMihqcpTuRPlDgxrFT7_Qxp25VVPhDU7asWf_ZMvUFFLa0TZ9aDch80weV5j"; // Inventory retrieval
 //	String jobId = "UYVO1FsZ8_LnOEEBVa-rM3kQ4s7s6-nfeWsdH9-2DCZzKYc6LAYOrc9nApfNnfh75r1dPpsMO8rLwmtYt0pG56eeI5Bj"; // Archive retrieval
-//	String archiveId = "gxrGyk6m8ccwFf59SF4gH9OK6w3T638L7NB64camYUtwtWUCtZ0MAyO6JtUnbr6lHaT-kJwSmYMj-DxZS7VRiHPhoQjLAMuRBabldnhtwMv8909W2bK67xmtXiNyQsP4b-UAqBOwvg";
+	String jobId = "6WXMaEyXgkFKvTQUMjOQyOU6LL1cmXG11Fh4jgzwaMOe-x0TrhU4TiZh-tZ7G4c9yyrAu7vmkfFJ1mOhmcOk3Qs7qAsq";
+//	String jobId = "L7Ecv1hTwnjWZo7850i60hfU7tLrgLB9hFPmA9GNQZT0xwcTmhPhu6L-Q4phB89baEhglUpeZTEkJXksq-76Qb6VTiyr";
+	String archiveId = "gxrGyk6m8ccwFf59SF4gH9OK6w3T638L7NB64camYUtwtWUCtZ0MAyO6JtUnbr6lHaT-kJwSmYMj-DxZS7VRiHPhoQjLAMuRBabldnhtwMv8909W2bK67xmtXiNyQsP4b-UAqBOwvg";
+//	String archiveId = "BfUz1-73uq4-FvwEyV1ZrKlPCidvtahjsXwTAu87ThMet-YmNhnOJzLL3KEa-TG43RFwDcpdT1qpuO3P6DcuXK2nxwawkvQUvq_X4ZQdhpSjxIsOQVn7UspjI0xG7smDDfSFneqqWg";
 
+	String archiveToUpload = "target/test-classes/sample.zip";
+	String archiveToDownloadJob = "target/JobArchiveRetrieval.bin";
+	String archiveToDownloadAtm = "target/AtmArchiveRetrieval.bin";
 	/**
 	 * Initialises AWS client and Jackson JSON mapper objects.
 	 * 
@@ -70,8 +90,14 @@ public class VaultsTest {
 	@Before
 	public void setUp() throws Exception {
 		credentials = new PropertiesCredentials(VaultsTest.class.getResourceAsStream("/AwsCredentials.properties"));
-		client = new AmazonGlacierClient(credentials);
-		client.setEndpoint("https://glacier.eu-west-1.amazonaws.com/");
+		
+		glacierClient = new AmazonGlacierClient(credentials);
+		sqsClient = new AmazonSQSClient(credentials);
+        snsClient = new AmazonSNSClient(credentials);
+        
+		glacierClient.setEndpoint("https://glacier.eu-west-1.amazonaws.com/");
+		sqsClient.setEndpoint("https://sqs.eu-west-1.amazonaws.com/");
+		snsClient.setEndpoint("https://sns.eu-west-1.amazonaws.com/");
 
 		mapper = new ObjectMapper();
 		mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
@@ -86,7 +112,7 @@ public class VaultsTest {
 	@Test
 	public void testListVaults() throws IOException {
 		ListVaultsRequest request = new ListVaultsRequest().withAccountId("-");
-		ListVaultsResult result = client.listVaults(request);
+		ListVaultsResult result = glacierClient.listVaults(request);
 		assertFalse("Failed to get the list of vaults!", result.getVaultList().size() == 0);
 
 		for (DescribeVaultOutput vault : result.getVaultList()) {
@@ -108,7 +134,7 @@ public class VaultsTest {
 	public void testListJobsInAVault() throws IOException {
 		ListJobsRequest request = new ListJobsRequest().withVaultName(vaultName);
 
-		ListJobsResult result = client.listJobs(request);
+		ListJobsResult result = glacierClient.listJobs(request);
 		System.out.println("Jobs: " + result.getJobList().size());
 		for (GlacierJobDescription job : result.getJobList()) {
 //			System.out.println(job);
@@ -127,7 +153,7 @@ public class VaultsTest {
 	@Test
 	public void testListJobsInAllVaults() throws IOException {
 		ListVaultsRequest request = new ListVaultsRequest().withAccountId("-");
-		ListVaultsResult result = client.listVaults(request);
+		ListVaultsResult result = glacierClient.listVaults(request);
 		assertFalse("Failed to get the list of vaults!", result.getVaultList().size() == 0);
 
 		for (DescribeVaultOutput vault : result.getVaultList()) {
@@ -135,7 +161,7 @@ public class VaultsTest {
 			System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(vault));
 			ListJobsRequest jlrequest = new ListJobsRequest().withVaultName(vault.getVaultName());
 
-			ListJobsResult jlresult = client.listJobs(jlrequest);
+			ListJobsResult jlresult = glacierClient.listJobs(jlrequest);
 			System.out.println("Jobs: " + jlresult.getJobList().size());
 			for (GlacierJobDescription job : jlresult.getJobList()) {
 //				System.out.println(job);
@@ -159,7 +185,7 @@ public class VaultsTest {
 				.withAccountId("-").withVaultName(vaultName)
 				.withJobParameters(new JobParameters().withType("inventory-retrieval"));
 
-		InitiateJobResult initJobResult = client.initiateJob(initJobRequest);
+		InitiateJobResult initJobResult = glacierClient.initiateJob(initJobRequest);
 		jobId = initJobResult.getJobId();
 		System.out.println("Job ID: " + jobId);
 
@@ -175,14 +201,14 @@ public class VaultsTest {
 	public void testJobOutputInventoryRetrieval() throws IOException {
 		DescribeJobRequest request = new DescribeJobRequest()
 				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
-		DescribeJobResult result = client.describeJob(request);
+		DescribeJobResult result = glacierClient.describeJob(request);
 		assertEquals("InventoryRetrieval", result.getAction());
 		System.out.println("Job details:");
 		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
 		
 		GetJobOutputRequest jorequest = new GetJobOutputRequest()
 				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
-		GetJobOutputResult joresult = client.getJobOutput(jorequest);
+		GetJobOutputResult joresult = glacierClient.getJobOutput(jorequest);
 
 		StringBuilder sb = new StringBuilder();
 		BufferedReader br = new BufferedReader(new InputStreamReader(joresult.getBody()));
@@ -206,7 +232,7 @@ public class VaultsTest {
 	@Test
 	public void testDownloadLatestInventory() throws IOException {
 		ListJobsRequest request = new ListJobsRequest().withVaultName(vaultName);
-		ListJobsResult result = client.listJobs(request);
+		ListJobsResult result = glacierClient.listJobs(request);
 		System.out.println("Total Jobs: " + result.getJobList().size());
 		
 		GlacierJobDescription latestJob = null;
@@ -229,7 +255,7 @@ public class VaultsTest {
 		
 		GetJobOutputRequest jorequest = new GetJobOutputRequest()
 			.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
-		GetJobOutputResult joresult = client.getJobOutput(jorequest);
+		GetJobOutputResult joresult = glacierClient.getJobOutput(jorequest);
 		
 		StringBuilder sb = new StringBuilder();
 		BufferedReader br = new BufferedReader(new InputStreamReader(joresult.getBody()));
@@ -261,12 +287,12 @@ public class VaultsTest {
 							.withArchiveId(archiveId)
 						);
 
-		InitiateJobResult initJobResult = client.initiateJob(initJobRequest);
+		InitiateJobResult initJobResult = glacierClient.initiateJob(initJobRequest);
 		jobId = initJobResult.getJobId();
 		System.out.println("Job ID: " + jobId);
 		DescribeJobRequest request = new DescribeJobRequest()
 				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
-		DescribeJobResult result = client.describeJob(request);
+		DescribeJobResult result = glacierClient.describeJob(request);
 		assertEquals("ArchiveRetrieval", result.getAction());
 		System.out.println("Job details:");
 		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
@@ -283,26 +309,66 @@ public class VaultsTest {
 	public void testJobOutputArchiveRetrieval() throws IOException {
 		DescribeJobRequest request = new DescribeJobRequest()
 				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
-		DescribeJobResult result = client.describeJob(request);
+		DescribeJobResult result = glacierClient.describeJob(request);
 		System.out.println("Job details:");
 		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
 		assertEquals("ArchiveRetrieval", result.getAction());
 		
 		GetJobOutputRequest jorequest = new GetJobOutputRequest()
 				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
-		GetJobOutputResult joresult = client.getJobOutput(jorequest);
+		GetJobOutputResult joresult = glacierClient.getJobOutput(jorequest);
 
-		FileOutputStream fos = new FileOutputStream(new File("target/ArchiveRetrieval.bin"));
+		FileOutputStream fos = new FileOutputStream(new File(archiveToDownloadJob));
 		BufferedInputStream bis = new BufferedInputStream(joresult.getBody());
 		byte[] buffer = new byte[1024];
-		while (bis.read(buffer) != -1) {
-			fos.write(buffer);
+		int c = 0;
+		while ((c = bis.read(buffer)) != -1) {
+			fos.write(buffer, 0, c);
 		}
 		fos.close();
 		bis.close();
-		System.out.println("Job output: " + "target/ArchiveRetrieval.bin");
+		System.out.println("Job output: " + archiveToDownloadJob);
 
 		assertTrue("Successfully completed.", true);
+	}
+
+	/**
+	 * Upload an archive to a named vault.
+	 * 
+	 * @throws FileNotFoundException 
+	 * @throws AmazonClientException 
+	 * @throws AmazonServiceException 
+	 * 
+	 */
+	@Test
+	public void testUploadArchive() throws AmazonServiceException, AmazonClientException, FileNotFoundException {
+		ArchiveTransferManager atm = new ArchiveTransferManager(glacierClient, sqsClient, snsClient);
+        
+        UploadResult result = atm.upload("-", vaultName, "my archive " + (new Date()), new File(archiveToUpload), 
+        		new ProgressListener() {
+					public void progressChanged(ProgressEvent e) {
+						System.out.println("Bytes transferred: " + e.getBytesTransferred());
+					}
+        		});
+        System.out.println("Archive ID: " + result.getArchiveId());
+	}
+	
+	/**
+	 * Download an archive from a named vault and given archiveId
+	 * 
+	 */
+	@Test
+	public void testDownloadArchive() {
+		ArchiveTransferManager atm = new ArchiveTransferManager(glacierClient, sqsClient, snsClient);
+        
+        System.out.println("Downloading Archive ID: " + archiveId);
+        atm.download("-", vaultName, archiveId, new File(archiveToDownloadAtm),//);
+        		new ProgressListener() {
+					public void progressChanged(ProgressEvent e) {
+						System.out.println("Bytes transferred: " + e.getBytesTransferred());
+					}
+        		});
+        System.out.println("Atm output: " + archiveToDownloadAtm);
 	}
 	
 	/**
