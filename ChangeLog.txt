@@ -1,3 +1,7 @@
+[30-Jun-2014]
+* [TA] Tests for directory uploading and downloading archives using ArchiveTransferManager.
+* [TA] Added Log4j logger. 
+
 [27-Jun-2014]
 * [TA] Tests for initiating and listing jobs and retrieving job output for both Inventory and Archive retrieval.
 
