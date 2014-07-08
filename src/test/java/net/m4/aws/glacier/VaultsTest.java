@@ -1,6 +1,9 @@
 package net.m4.aws.glacier;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -46,6 +49,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import javax.xml.bind.DatatypeConverter;
 
 /**
  * Tests for AWS Glacier.
@@ -68,8 +72,14 @@ public class VaultsTest {
 	ObjectMapper mapper;
 
 	// metafour - backup
+	String vaultName = "116-demo2.metafour.com";
+//	String vaultName = "304-arrow.m4.net";
 //	String vaultName = "Backup";
-	String vaultName = "fourdhn2-2014-27";
+//	String vaultName = "NetCourier";
+//	String vaultName = "fourdhn2-2014-27";
+//	String vaultName = "fourdhn2-2014-28";
+//	String vaultName = "testvault";
+	
 //	String jobId = "-X-U6-WqL3HUWbNBtjtif_Jr2L7yWGVwWJ2hAfC4-3JgD_diQ9n92uf_y-bzP01jGrY0ajfw7W-mypRTL42NsoKYEclD";
 //	String jobId = "F3z6zyRc8Gl9lHRePPVgFhzf3y9QpNV7VK9WQm4Gpdu_Cqna3FIGrUw-RgQI9GW4jmX66XhFqtxH_CzfjnbPFD3_cF8K";
 //	String jobId = "dDsW_nDKptnGi-IYjEDMQfk-tKSdKzxNhMqYpeFRW6GP4ZM-8v88k6l9su94MiCkRnNnRbHYvqDcihew2bcV2RXNX4Uy";
@@ -439,7 +449,20 @@ public class VaultsTest {
         		});
         logger.info("Atm output: " + archiveToDownloadAtm);
 	}
-	
+
+	/**
+	 * Decode base64 encoded archive description.
+	 * 
+	 * @see
+	 * <a href="https://github.com/vsespb/mt-aws-glacier/blob/master/lib/App/MtAws/MetaData.pm">mt-aws-glacier: MetaData.pm</a>
+	 */
+	@Test
+	public void testDecodeArchiveDescription() {
+		String archiveDescription = "mt2 eyJmaWxlbmFtZSI6InZhci93d3cvbmV0Y3Y0XzExL25jZGVscmVjLmpzIiwibXRpbWUiOiIyMDA4MDgwN1QwNjUwMzFaIn0";
+		byte[] b = DatatypeConverter.parseBase64Binary(archiveDescription.split(" ")[1]);
+        logger.info("Decoded archive description: " + new String(b));
+	}
+
 	/**
 	 * Jackson JSON mapper configuration.
 	 * 
