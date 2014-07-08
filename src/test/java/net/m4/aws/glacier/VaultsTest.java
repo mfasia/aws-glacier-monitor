@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
@@ -49,6 +50,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+
 import javax.xml.bind.DatatypeConverter;
 
 /**
@@ -459,7 +461,14 @@ public class VaultsTest {
 	@Test
 	public void testDecodeArchiveDescription() {
 		String archiveDescription = "mt2 eyJmaWxlbmFtZSI6InZhci93d3cvbmV0Y3Y0XzExL25jZGVscmVjLmpzIiwibXRpbWUiOiIyMDA4MDgwN1QwNjUwMzFaIn0";
-		byte[] b = DatatypeConverter.parseBase64Binary(archiveDescription.split(" ")[1]);
+		String b64 = archiveDescription.split(" ")[1];
+		int padding = 4 - (b64.length() % 4);
+		if (padding > 0) {
+			char[] c = new char[padding];
+			Arrays.fill(c, '=');
+			b64 = b64.concat(new String(c));
+		}
+		byte[] b = DatatypeConverter.parseBase64Binary(b64);
         logger.info("Decoded archive description: " + new String(b));
 	}
 
