@@ -1,3 +1,10 @@
+[10-Jul-2014]
+* [TA] Decode and encode archive description as per mt-aws-glacier (MetaData.pm).
+* [TA] Code clean-up - use VaultsTest.properties
+
+[07-Jul-2014]
+* [TA] Test for downloading large archive in chunks.
+
 [30-Jun-2014]
 * [TA] Tests for directory uploading and downloading archives using ArchiveTransferManager.
 * [TA] Added Log4j logger. 
