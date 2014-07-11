@@ -1,0 +1,24 @@
+{
+  "jobId" : "VfHEsg0rJgM9bX5xSzhQbr49SyU-bOrjBDRRo0uR5848ocYi6WGxeX10sjousPPxIgxOZckDUND3dhthn3iuLeZH6wAn",
+  "jobDescription" : null,
+  "action" : "InventoryRetrieval",
+  "archiveId" : null,
+  "vaultARN" : "arn:aws:glacier:eu-west-1:013263306916:vaults/fourdhn2-2014-28",
+  "creationDate" : "2014-07-10T22:08:17.193Z",
+  "statusCode" : "Succeeded",
+  "statusMessage" : "Succeeded",
+  "archiveSizeInBytes" : null,
+  "inventorySizeInBytes" : 8711,
+  "completionDate" : "2014-07-11T01:52:20.274Z",
+  "archiveSHA256TreeHash" : null,
+  "retrievalByteRange" : null,
+  "inventoryRetrievalParameters" : {
+    "format" : "JSON",
+    "startDate" : null,
+    "endDate" : null,
+    "limit" : null,
+    "marker" : null
+  },
+  "snstopic" : null,
+  "sha256TreeHash" : null
+}

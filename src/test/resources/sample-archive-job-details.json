@@ -1,0 +1,18 @@
+{
+  "jobId" : "ER1G3L2P8ROoPeQwXv05NhDLdoPZlRzNubuXxeaKKRpDs1dOWlUvEjW55qTfe0p2C5q1yPQW4kNwglj3SjGA2-kvw2J5",
+  "jobDescription" : null,
+  "action" : "ArchiveRetrieval",
+  "archiveId" : "nmjcgWF73F460_X3qQxxmkos9VjXl6fmGujQ3_1J_XSaFZdn8R3iNdgCeoOqoRTPPWf4vd7PtqsnBn_xkw008FiMRBl722fsfaz6KrzczNMrFS87PjsoZ211-Wbt0YfH7HZivKot9Q",
+  "vaultARN" : "arn:aws:glacier:eu-west-1:013263306916:vaults/fourdhn2-2014-28",
+  "creationDate" : "2014-07-11T11:06:31.510Z",
+  "statusCode" : "InProgress",
+  "statusMessage" : null,
+  "archiveSizeInBytes" : 664,
+  "inventorySizeInBytes" : null,
+  "completionDate" : null,
+  "archiveSHA256TreeHash" : "ed27de07c3e6d47edb5480e6b39fcfa76b9238d9c2c7aecc3261456588c5d2c3",
+  "retrievalByteRange" : "0-663",
+  "inventoryRetrievalParameters" : null,
+  "sha256TreeHash" : "ed27de07c3e6d47edb5480e6b39fcfa76b9238d9c2c7aecc3261456588c5d2c3",
+  "snstopic" : null
+}

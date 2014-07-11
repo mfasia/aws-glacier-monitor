@@ -1,0 +1,8 @@
+{
+  "vaultARN" : "arn:aws:glacier:eu-west-1:013263306916:vaults/fourdhn2-2014-28",
+  "vaultName" : "fourdhn2-2014-28",
+  "creationDate" : "2014-07-07T18:41:34.694Z",
+  "lastInventoryDate" : "2014-07-11T07:28:16.032Z",
+  "numberOfArchives" : 13,
+  "sizeInBytes" : 7555757672
+}
