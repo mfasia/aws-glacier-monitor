@@ -1,12 +1,15 @@
 // metafour - backup
-vaultName=fourdhn2-2014-27;
-jobId=-X-U6-WqL3HUWbNBtjtif_Jr2L7yWGVwWJ2hAfC4-3JgD_diQ9n92uf_y-bzP01jGrY0ajfw7W-mypRTL42NsoKYEclD;
-archiveId=SlR6vzJqJf4ASIEXpCx6O_Tpn9aUGq_1U7KLdrlJSRBSvYkVYmnNPq-dEsFiBRAWdoK0o3SVxKHAzC33pF13nKA2-5x6MmcIWaFhZsBu725LR0m5iRejJbOKbv9j5JkUuQc9R3ks3w;
+#vaultName=Backup
+vaultName=fourdhn2-2014-28
+jobId=-X-U6-WqL3HUWbNBtjtif_Jr2L7yWGVwWJ2hAfC4-3JgD_diQ9n92uf_y-bzP01jGrY0ajfw7W-mypRTL42NsoKYEclD
+archiveId=SlR6vzJqJf4ASIEXpCx6O_Tpn9aUGq_1U7KLdrlJSRBSvYkVYmnNPq-dEsFiBRAWdoK0o3SVxKHAzC33pF13nKA2-5x6MmcIWaFhZsBu725LR0m5iRejJbOKbv9j5JkUuQc9R3ks3w
 
 // ftahmed - glacier
-#vaultName=testvault;
-#jobId=L7Ecv1hTwnjWZo7850i60hfU7tLrgLB9hFPmA9GNQZT0xwcTmhPhu6L-Q4phB89baEhglUpeZTEkJXksq-76Qb6VTiyr;
-#archiveId=BfUz1-73uq4-FvwEyV1ZrKlPCidvtahjsXwTAu87ThMet-YmNhnOJzLL3KEa-TG43RFwDcpdT1qpuO3P6DcuXK2nxwawkvQUvq_X4ZQdhpSjxIsOQVn7UspjI0xG7smDDfSFneqqWg;
+#vaultName=testvault
+#jobId=L7Ecv1hTwnjWZo7850i60hfU7tLrgLB9hFPmA9GNQZT0xwcTmhPhu6L-Q4phB89baEhglUpeZTEkJXksq-76Qb6VTiyr
+#archiveId=BfUz1-73uq4-FvwEyV1ZrKlPCidvtahjsXwTAu87ThMet-YmNhnOJzLL3KEa-TG43RFwDcpdT1qpuO3P6DcuXK2nxwawkvQUvq_X4ZQdhpSjxIsOQVn7UspjI0xG7smDDfSFneqqWg
 
-archiveToUpload=target/test-classes/sample.zip;
-archiveDownloadDir=target;
+archiveToUpload=target/test-classes/sample.zip
+archiveDownloadDir=target
+archiveDescription={"filename":"2221-1404762035.tgz.gpg","mtime":"20140707T194155Z"}
+mt2EncodedArchiveDescription=mt2 eyJmaWxlbmFtZSI6IjIyMjEtMTQwNDc2MjAzNS50Z3ouZ3BnIiwibXRpbWUiOiIyMDE0MDcwN1QxOTQxNTVaIn0
