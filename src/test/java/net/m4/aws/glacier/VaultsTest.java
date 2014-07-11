@@ -34,6 +34,7 @@ import com.amazonaws.event.ProgressEvent;
 import com.amazonaws.event.ProgressListener;
 import com.amazonaws.services.glacier.AmazonGlacierClient;
 import com.amazonaws.services.glacier.TreeHashGenerator;
+import com.amazonaws.services.glacier.model.DeleteVaultRequest;
 import com.amazonaws.services.glacier.model.DescribeJobRequest;
 import com.amazonaws.services.glacier.model.DescribeJobResult;
 import com.amazonaws.services.glacier.model.DescribeVaultOutput;
@@ -145,6 +146,20 @@ public class VaultsTest {
 		assertTrue("Successfully completed.", result.getVaultList().size() > 0);
 	}
 
+	/**
+	 * Delete a vault.
+	 * 
+	 */
+	@Test
+	@Ignore
+	public void testDeleteVault() {
+		DeleteVaultRequest request = new DeleteVaultRequest().withAccountId("-");
+		request.withVaultName(vaultName);
+		glacierClient.deleteVault(request);
+
+		assertTrue("Successfully completed.", true);
+	}
+	
 	/**
 	 * Fetch job information from a vault.
 	 * 
