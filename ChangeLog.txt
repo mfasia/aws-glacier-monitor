@@ -1,3 +1,6 @@
+[11-Jul-2014]
+* [TA] Test for deleting a vault.
+
 [10-Jul-2014]
 * [TA] Decode and encode archive description as per mt-aws-glacier (MetaData.pm).
 * [TA] Code clean-up - use VaultsTest.properties
