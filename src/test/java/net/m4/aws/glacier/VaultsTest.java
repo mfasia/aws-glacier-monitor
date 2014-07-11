@@ -368,6 +368,8 @@ public class VaultsTest {
 	/**
 	 * Download an archive given a Job ID in chunks (assuming the job was initiated 4+ hours ago and completed successfully).
 	 * 
+	 * XXX: FIXIT!
+	 * 
 	 * @throws IOException
 	 */
 	@Test
@@ -481,9 +483,10 @@ public class VaultsTest {
 	 */
 	@Test
 	public void testDecodeArchiveDescription() {
+		logger.info("mt2 encoded archive description: " + mt2EncodedArchiveDescription);
 		assertEquals("mt2", mt2EncodedArchiveDescription.split(" ")[0]);
 		String b64 = mt2EncodedArchiveDescription.split(" ")[1];
-        logger.info("Encoded archive description: " + b64);
+		// Perl: $str =~ tr{-_}{+/};
 		b64 = StringUtils.replaceChars(b64, "-_", "+/");
 		int padding = 4 - (b64.length() % 4);
 		if (padding > 0) {
@@ -491,6 +494,7 @@ public class VaultsTest {
 			Arrays.fill(c, '=');
 			b64 = b64.concat(new String(c));
 		}
+        logger.info("Base64 encoded archive description: " + b64);
 		byte[] b = DatatypeConverter.parseBase64Binary(b64);
 		String decoded = new String(b);
         logger.info("Decoded archive description: " + decoded);
@@ -507,14 +511,14 @@ public class VaultsTest {
 	public void testEncodeArchiveDescription() {
 		logger.info("Archive description: " + archiveDescription);
 		String b64 = DatatypeConverter.printBase64Binary(archiveDescription.getBytes());
-		logger.info("Encoded archive description: " + b64);
+		logger.info("Base64 encoded archive description: " + b64);
 		// Perl: $res =~ s/=+\z//;
-		String encoded = b64.replaceAll("=+$", ""); // FIXIT
+		String encoded = b64.replaceAll("(=+)$", "");
 		// Perl: $res =~ tr{+/}{-_};
-		encoded = StringUtils.replaceChars(b64, "+/", "-_");
+		encoded = StringUtils.replaceChars(encoded, "+/", "-_");
 		encoded = "mt2 ".concat(encoded);
 		assertEquals(mt2EncodedArchiveDescription, encoded);
-		logger.info("Encoded archive description: " + encoded);
+		logger.info("mt2 encoded archive description: " + encoded);
 	}
 	
 	/**
