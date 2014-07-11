@@ -1,5 +1,8 @@
 [11-Jul-2014]
 * [TA] Test for deleting a vault.
+* [TA] Trim trailing equal (=) from Base64 encoded string in testEncodeArchiveDescription()
+* [TA] Sample JSON output from AWS SDK.
+* [TA] TODO: Fix testJobOutputArchiveRetrievalInChunks()
 
 [10-Jul-2014]
 * [TA] Decode and encode archive description as per mt-aws-glacier (MetaData.pm).
