@@ -10,8 +10,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
@@ -50,6 +56,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.metafour.aws.glacier.MtAwsMetaData;
 
 /**
  * Tests for AWS Glacier.
@@ -247,9 +254,10 @@ public class VaultsTest {
 	 * Download the latest inventory of the named vault (assuming the job was initiated 4+ hours ago and completed successfully).
 	 *  
 	 * @throws IOException
+	 * @throws ParseException 
 	 */
 	@Test
-	public void testDownloadLatestInventory() throws IOException {
+	public void testDownloadLatestInventory() throws IOException, ParseException {
 		ListJobsRequest request = new ListJobsRequest().withVaultName(vaultName);
 		ListJobsResult result = glacierClient.listJobs(request);
 		logger.info("Total Jobs: " + result.getJobList().size());
@@ -267,7 +275,7 @@ public class VaultsTest {
 			}
 		}
 		assertNotNull("There is no completed inventory job", latestJob);
-		logger.info("The Latest Inventory Job:");
+		logger.info("The Latest Inventory Retrieval Job:");
 		logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(latestJob));
 		
 		jobId = latestJob.getJobId();
@@ -282,11 +290,25 @@ public class VaultsTest {
 		while ((line = br.readLine()) != null) {
 			sb.append(line);
 		}
-		logger.info("The Latest Inventory:");
-		//logger.info(sb.toString());
-		// TODO: decode mt2 encoded ArchiveDescription
-		Object json = mapper.readValue(sb.toString(), Object.class);
-		logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json));
+//		logger.info(sb.toString());
+		Map<String, Object> inventory = (Map<String, Object>) mapper.readValue(sb.toString(), Object.class);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+		Date date = sdf.parse(inventory.get("InventoryDate").toString());
+		logger.info("The Latest Inventory: " + DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG).format(date));
+		for (Map<String, Object> archive : (List<Map<String, Object>>) inventory.get("ArchiveList")) {
+			// decoding mt2 encoded ArchiveDescription
+			String mt2Desc = archive.get("ArchiveDescription").toString();
+//			logger.info(MtAwsMetaData.decodeMt2(mt2Desc));
+			Map<String, String> plainDesc = (Map<String, String>) mapper.readValue(MtAwsMetaData.decodeMt2(mt2Desc), Object.class);
+			archive.put("FileName", plainDesc.get("filename"));
+			sdf.applyPattern("yyyyMMdd'T'HHmmss'Z'");
+			date = sdf.parse(plainDesc.get("mtime"));   
+			sdf.applyPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+			archive.put("ModifiedDate", sdf.format(date));
+		}
+		logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(inventory));
+		
 
 		assertTrue("Successfully completed.", true);
 	}
@@ -372,7 +394,7 @@ public class VaultsTest {
 		long archiveSizeInBytes = result.getArchiveSizeInBytes();
 		
 		if (archiveSizeInBytes < 0) {
-            System.err.println("Nothing to download.");
+            logger.error("Nothing to download.");
             return;
         }
 
