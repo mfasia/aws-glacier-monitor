@@ -1,3 +1,10 @@
+[15-Jul-2014]
+* [TA] New utility class MtAwsMetaData for mt2 codec.
+* [TA] mt2 codec tests moved from VaultTest to MtAwsMetaDataTest class.
+* [TA] File upload (multipart) test using HttpClient. 
+* TODO: decode mt2 encoded ArchiveDescription in inventory listing.
+* TODO: Use mt2 encoded archive description 
+
 [11-Jul-2014]
 * [TA] Test for deleting a vault.
 * [TA] Trim trailing equal (=) from Base64 encoded string in testEncodeArchiveDescription()
