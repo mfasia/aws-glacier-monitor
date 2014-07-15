@@ -55,9 +55,9 @@ public class MtAwsMetaData {
 		// Perl: $str =~ tr{-_}{+/};
 		b64 = StringUtils.replaceChars(b64, "-_", "+/");
 		logger.debug("Replaced -_ with +/: " + b64);
-		int padding = 4 - (b64.length() % 4);
+		int padding = (b64.length() % 4);
 		if (padding > 0) {
-			char[] c = new char[padding];
+			char[] c = new char[4-padding];
 			Arrays.fill(c, '=');
 			b64 = b64.concat(new String(c));
 		}
