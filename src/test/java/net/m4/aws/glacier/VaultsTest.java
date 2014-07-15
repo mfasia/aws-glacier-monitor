@@ -1,9 +1,6 @@
 package net.m4.aws.glacier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -13,14 +10,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
 
-import javax.xml.bind.DatatypeConverter;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -74,16 +67,12 @@ public class VaultsTest {
 	public static final String ARCHIVE_ID = "archiveId";
 	public static final String ARCHIVE_TO_UPLOAD = "archiveToUpload";
 	public static final String ARCHIVE_DOWNLOAD_DIR = "archiveDownloadDir";
-	public static final String ARCHIVE_DESCRIPTION = "archiveDescription";
-	public static final String MT2_ENCODED_ARCHIVE_DESCRIPTION = "mt2EncodedArchiveDescription";
 	// Test properties 
 	private static String vaultName;
 	private static String jobId;
 	private static String archiveId;
 	private static String archiveToUpload;
 	private static String archiveDownloadDir;
-	private static String archiveDescription;
-	private static String mt2EncodedArchiveDescription;
 
 	// AWS
 	private static AWSCredentials credentials;
@@ -110,8 +99,6 @@ public class VaultsTest {
 		archiveId = p.getProperty(ARCHIVE_ID);
 		archiveToUpload = p.getProperty(ARCHIVE_TO_UPLOAD);
 		archiveDownloadDir = p.getProperty(ARCHIVE_DOWNLOAD_DIR);
-		archiveDescription = p.getProperty(ARCHIVE_DESCRIPTION);
-		mt2EncodedArchiveDescription = p.getProperty(MT2_ENCODED_ARCHIVE_DESCRIPTION);
 
 		credentials = new PropertiesCredentials(VaultsTest.class.getResourceAsStream("/AwsCredentials.properties"));
 		
@@ -297,6 +284,7 @@ public class VaultsTest {
 		}
 		logger.info("The Latest Inventory:");
 		//logger.info(sb.toString());
+		// TODO: decode mt2 encoded ArchiveDescription
 		Object json = mapper.readValue(sb.toString(), Object.class);
 		logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json));
 
@@ -447,7 +435,9 @@ public class VaultsTest {
 	public void testUploadArchive() throws AmazonServiceException, AmazonClientException, FileNotFoundException {
 		ArchiveTransferManager atm = new ArchiveTransferManager(glacierClient, sqsClient, snsClient);
         
-        UploadResult result = atm.upload("-", vaultName, archiveToUpload + " [" + (new Date()) + "]", new File(archiveToUpload), 
+		// TODO: Use mt2 encoded archive description
+		String description = archiveToUpload + " [" + (new Date()) + "]";
+        UploadResult result = atm.upload("-", vaultName, description, new File(archiveToUpload), 
         		new ProgressListener() {
 					public void progressChanged(ProgressEvent e) {
 						logger.info("Bytes transferred: " + e.getBytesTransferred());
@@ -475,52 +465,6 @@ public class VaultsTest {
         logger.info("Archive downloaded to: " + fileName);
 	}
 
-	/**
-	 * Decode base64 encoded archive description.
-	 * 
-	 * @see
-	 * <a href="https://github.com/vsespb/mt-aws-glacier/blob/master/lib/App/MtAws/MetaData.pm">mt-aws-glacier: MetaData.pm</a>
-	 */
-	@Test
-	public void testDecodeArchiveDescription() {
-		logger.info("mt2 encoded archive description: " + mt2EncodedArchiveDescription);
-		assertEquals("mt2", mt2EncodedArchiveDescription.split(" ")[0]);
-		String b64 = mt2EncodedArchiveDescription.split(" ")[1];
-		// Perl: $str =~ tr{-_}{+/};
-		b64 = StringUtils.replaceChars(b64, "-_", "+/");
-		int padding = 4 - (b64.length() % 4);
-		if (padding > 0) {
-			char[] c = new char[padding];
-			Arrays.fill(c, '=');
-			b64 = b64.concat(new String(c));
-		}
-        logger.info("Base64 encoded archive description: " + b64);
-		byte[] b = DatatypeConverter.parseBase64Binary(b64);
-		String decoded = new String(b);
-        logger.info("Decoded archive description: " + decoded);
-		assertEquals(archiveDescription, decoded);
-	}
-
-	/**
-	 * Encode archive description.
-	 * 
-	 * @see
-	 * <a href="https://github.com/vsespb/mt-aws-glacier/blob/master/lib/App/MtAws/MetaData.pm">mt-aws-glacier: MetaData.pm</a>
-	 */
-	@Test
-	public void testEncodeArchiveDescription() {
-		logger.info("Archive description: " + archiveDescription);
-		String b64 = DatatypeConverter.printBase64Binary(archiveDescription.getBytes());
-		logger.info("Base64 encoded archive description: " + b64);
-		// Perl: $res =~ s/=+\z//;
-		String encoded = b64.replaceAll("(=+)$", "");
-		// Perl: $res =~ tr{+/}{-_};
-		encoded = StringUtils.replaceChars(encoded, "+/", "-_");
-		encoded = "mt2 ".concat(encoded);
-		assertEquals(mt2EncodedArchiveDescription, encoded);
-		logger.info("mt2 encoded archive description: " + encoded);
-	}
-	
 	/**
 	 * Jackson JSON mapper configuration.
 	 * 
