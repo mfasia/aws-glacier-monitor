@@ -100,10 +100,9 @@ public class ArchiveDownloadTest {
 
         logger.info("archiveSizeInBytes: " + archiveSizeInBytes);
         
-        // create download folder
-        String dirName = archiveDownloadDir + "/" + UUID.randomUUID().toString();
-        boolean success = (new File(dirName)).mkdirs();
-        assertTrue("Failed to create director: " + dirName, success);
+        String fileName = archiveDownloadDir + "/" + UUID.randomUUID().toString();
+        RandomAccessFile archiveFile = new RandomAccessFile(fileName, "rw");
+		archiveFile.setLength(archiveSizeInBytes);
         
         int chunk = 0;
         long startRange = 0;
@@ -113,7 +112,7 @@ public class ArchiveDownloadTest {
         
         do {
         	chunk++;
-        	Runnable downloader = new DownloadThread(dirName, chunk, startRange, endRange);
+        	Runnable downloader = new DownloadThread(archiveFile, chunk, startRange, endRange);
         	executor.execute(downloader);
         	
         	startRange = startRange + (long) DOWNLOAD_CHUNK_SIZE;
@@ -124,19 +123,19 @@ public class ArchiveDownloadTest {
         while (!executor.isTerminated()) {
         	;
         }
-        logger.info("Archive downloaded to: " + dirName);
+        archiveFile.close();
+        logger.info("Archive downloaded to: " + fileName);
 
 		assertTrue("Successfully completed.", true);
 	}
 	
 	class DownloadThread implements Runnable {
-		String dirName;
-		String fileName;
+		RandomAccessFile file;
 		int chunk;
 		long startRange, endRange;
 
-		public DownloadThread(String dirName, int chunk, long startRange, long endRange) {
-			this.dirName = dirName;
+		public DownloadThread(RandomAccessFile file, int chunk, long startRange, long endRange) {
+			this.file = file;
 			this.chunk = chunk;
 			this.startRange = startRange;
 			this.endRange = endRange;
@@ -150,9 +149,6 @@ public class ArchiveDownloadTest {
 		
 		private void download() {
 	        try {
-	        	fileName = String.format("%s/part-%04d", dirName, chunk);
-	        	FileOutputStream fstream = new FileOutputStream(fileName);
-	        	
 	            GetJobOutputRequest getJobOutputRequest = new GetJobOutputRequest()
 	                .withVaultName(vaultName)
 	                .withRange("bytes=" + startRange + "-" + endRange)
@@ -178,11 +174,13 @@ public class ArchiveDownloadTest {
 	            }
 	            logger.info("Calculated checksum: " + TreeHashGenerator.calculateTreeHash(new ByteArrayInputStream(buffer)));
 	            logger.info("read = " + totalRead);
-	            fstream.write(buffer);
+	            
+	            synchronized (file) {
+	            	file.seek(startRange);
+		            file.write(buffer);
+				}
 	            
 	            is.close();
-	            
-	            fstream.close();
 	        } catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
