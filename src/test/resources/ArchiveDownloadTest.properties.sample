@@ -1,0 +1,9 @@
+// metafour - backup
+vaultName=fourdhn2-2014-28
+jobId=T8z6O8YWERTv-f9eR-9wZ8Uz_4bHwaCkVRA0Lr8ua2oy-sQ5xav8CbI7JvWlhSnFyNpZ8ubjjFYKfSMLcO_XnpvP2uYi
+
+// ftahmed - glacier
+#vaultName=testvault
+#jobId=L7Ecv1hTwnjWZo7850i60hfU7tLrgLB9hFPmA9GNQZT0xwcTmhPhu6L-Q4phB89baEhglUpeZTEkJXksq-76Qb6VTiyr
+
+archiveDownloadDir=target
