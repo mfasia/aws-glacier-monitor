@@ -87,7 +87,7 @@ public class VaultsTest {
 	private static AmazonSQSClient sqsClient;
 	private static AmazonSNSClient snsClient;
 	
-	private static final long DOWNLOAD_CHUNK_SIZE = 4194304; // 4 MB  
+	private static final long DOWNLOAD_CHUNK_SIZE = 1048576; // 1 MB // 4194304; // 4 MB  
 
 	// Jackson JSON Mapper
 	private static ObjectMapper mapper;
@@ -119,7 +119,7 @@ public class VaultsTest {
 
 		mapper = new ObjectMapper();
 		mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
-		mapper.registerModule(new VaultsTestModule());
+		mapper.registerModule(new AwsGlacierMixInModule());
 	}
 
 	/**
@@ -378,7 +378,7 @@ public class VaultsTest {
 	/**
 	 * Download an archive given a Job ID in chunks (assuming the job was initiated 4+ hours ago and completed successfully).
 	 * 
-	 * XXX: FIXIT!
+	 * NOTE: FIXED! Download chunk size 1 MB did the trick. It may depend on available bandwidth.
 	 * 
 	 * @throws IOException
 	 */
@@ -487,49 +487,4 @@ public class VaultsTest {
         logger.info("Archive downloaded to: " + fileName);
 	}
 
-	/**
-	 * Jackson JSON mapper configuration.
-	 * 
-	 * @see
-	 * <a href="http://wiki.fasterxml.com/JacksonMixInAnnotations">http://wiki.fasterxml.com/JacksonMixInAnnotations</a>
-	 * <a href="http://wiki.fasterxml.com/JacksonFeatureModules">http://wiki.fasterxml.com/JacksonFeatureModules</a>
-	 *
-	 */
-	class VaultsTestModule extends SimpleModule {
-		private static final long serialVersionUID = -7213534997633659786L;
-
-		public VaultsTestModule() {
-			super("VaultsTestModule", new Version(0, 0, 1, null, null, null));
-		}
-
-		@Override
-		public void setupModule(SetupContext context) {
-			context.setMixInAnnotations(GlacierJobDescription.class, GlacierJobDescriptionMixIn.class);
-			context.setMixInAnnotations(DescribeJobResult.class, DescribeJobResultMixIn.class);
-			// and other set up, if any
-		}
-	}
-	
-	/**
-	 * MixIn class for GlacierJobDescription
-	 *
-	 */
-	abstract class GlacierJobDescriptionMixIn extends GlacierJobDescription {
-		private static final long serialVersionUID = -1866228620607371709L;
-
-		@JsonIgnore
-		public abstract Boolean getCompleted(); // we don't need it!
-
-	}
-	
-	/**
-	 * MixIn class for DescribeJobResult
-	 *
-	 */
-	abstract class DescribeJobResultMixIn extends DescribeJobResult {
-		private static final long serialVersionUID = 8577745463832177536L;
-
-		@JsonIgnore
-		public abstract Boolean getCompleted(); // we don't need it!
-	}
 }
