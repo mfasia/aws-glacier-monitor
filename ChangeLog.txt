@@ -1,3 +1,8 @@
+[20-Jul-2014]
+* [TA] Moved MixIn classes to separate source file.
+* [TA] FIXED! Download chunk size 1 MB did the trick. It may depend on available bandwidth.
+* [TA] New multi-threaded archive download test. 
+
 [15-Jul-2014]
 * [TA] New utility class MtAwsMetaData for mt2 codec.
 * [TA] mt2 codec tests moved from VaultTest to MtAwsMetaDataTest class.
