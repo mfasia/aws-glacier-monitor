@@ -77,8 +77,7 @@ public class ArchiveDownloadTest {
 
 	/**
 	 * Download an archive given a Job ID in chunks (assuming the job was initiated 4+ hours ago and completed successfully).
-	 * 
-	 * XXX: FIXIT!
+	 * Each chunk is downloaded in a separate thread. A fixed size thread pool is used.
 	 * 
 	 * @throws IOException
 	 */
@@ -142,9 +141,9 @@ public class ArchiveDownloadTest {
 		}
 		
 		public void run() {
-			logger.info(String.format("Start. startRange: %d endRange: %d.", startRange, endRange));
+			logger.info(String.format("Begin chunk %d: startRange: %d endRange: %d.", chunk, startRange, endRange));
 	        download();
-	        logger.info("End.");
+	        logger.info(String.format("End chunk %d: startRange: %d endRange: %d.", chunk, startRange, endRange));
 		}
 		
 		private void download() {
@@ -173,11 +172,14 @@ public class ArchiveDownloadTest {
 	                
 	            }
 	            logger.info("Calculated checksum: " + TreeHashGenerator.calculateTreeHash(new ByteArrayInputStream(buffer)));
-	            logger.info("read = " + totalRead);
+	            logger.info("Bytes read " + totalRead);
+	            
+//	            * XXX: Check integrity of downloaded chunks and the archive.
+//	            assertEquals("Checksum mismatch", getJobOutputResult.getChecksum(), TreeHashGenerator.calculateTreeHash(new ByteArrayInputStream(buffer)));
 	            
 	            synchronized (file) {
 	            	file.seek(startRange);
-		            file.write(buffer);
+		            file.write(buffer, 0, totalRead);
 				}
 	            
 	            is.close();
