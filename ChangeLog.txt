@@ -1,3 +1,7 @@
+[22-Jul-2014]
+* [TA] FIXED! Multi-threaded archive download - write exact number of bytes to the file.
+* TODO: Check integrity of downloaded chunks and the archive.
+
 [20-Jul-2014]
 * [TA] Moved MixIn classes to separate source file.
 * [TA] FIXED! Download chunk size 1 MB did the trick. It may depend on available bandwidth.
