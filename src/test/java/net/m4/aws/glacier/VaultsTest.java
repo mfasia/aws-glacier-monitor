@@ -20,6 +20,8 @@ import java.util.Properties;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import javax.management.relation.Relation;
+
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -128,16 +130,20 @@ public class VaultsTest {
 	 * @throws IOException
 	 */
 	@Test
-	public void testListVaults() throws IOException {
-		ListVaultsRequest request = new ListVaultsRequest().withAccountId("-");
-		ListVaultsResult result = glacierClient.listVaults(request);
-		assertFalse("There are no vaults!", result.getVaultList().size() == 0);
-
-		for (DescribeVaultOutput vault : result.getVaultList()) {
-			logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(vault));
-		}
-
-		assertTrue("Successfully completed.", result.getVaultList().size() > 0);
+	public void testListAllVaults() throws IOException {
+		String marker = null;
+		do {
+			ListVaultsRequest request = new ListVaultsRequest().withAccountId("-").withMarker(marker);
+			ListVaultsResult result = glacierClient.listVaults(request);
+			assertFalse("There are no vaults!", result.getVaultList().size() == 0);
+	
+			marker = result.getMarker();
+			for (DescribeVaultOutput vault : result.getVaultList()) {
+				logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(vault));
+			}
+	
+			assertTrue("Successfully completed.", result.getVaultList().size() > 0);
+		} while (marker != null);
 	}
 
 	/**
@@ -180,21 +186,25 @@ public class VaultsTest {
 	 */
 	@Test
 	public void testListJobsInAllVaults() throws IOException {
-		ListVaultsRequest request = new ListVaultsRequest().withAccountId("-");
-		ListVaultsResult result = glacierClient.listVaults(request);
-		assertFalse("There are no vaults!", result.getVaultList().size() == 0);
-
-		for (DescribeVaultOutput vault : result.getVaultList()) {
-			logger.info(String.format("Vault: %s", vault.getVaultName()));
-			logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(vault));
-			ListJobsRequest jlrequest = new ListJobsRequest().withVaultName(vault.getVaultName());
-
-			ListJobsResult jlresult = glacierClient.listJobs(jlrequest);
-			logger.info(String.format("Jobs in %s: %d", vault.getVaultName(), jlresult.getJobList().size()));
-			for (GlacierJobDescription job : jlresult.getJobList()) {
-				logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(job));
+		String marker = null;
+		do {
+			ListVaultsRequest request = new ListVaultsRequest().withAccountId("-").withMarker(marker);
+			ListVaultsResult result = glacierClient.listVaults(request);
+			assertFalse("There are no vaults!", result.getVaultList().size() == 0);
+	
+			marker = result.getMarker();
+			for (DescribeVaultOutput vault : result.getVaultList()) {
+//				logger.info(String.format("Vault: %s", vault.getVaultName()));
+//				logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(vault));
+				ListJobsRequest jlrequest = new ListJobsRequest().withVaultName(vault.getVaultName());
+	
+				ListJobsResult jlresult = glacierClient.listJobs(jlrequest);
+				logger.info(String.format("Jobs in %s: %d", vault.getVaultName(), jlresult.getJobList().size()));
+				for (GlacierJobDescription job : jlresult.getJobList()) {
+					logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(job));
+				}
 			}
-		}
+		} while (marker != null);
 
 		assertTrue("Successfully completed.", true);
 	}
@@ -214,6 +224,36 @@ public class VaultsTest {
 		InitiateJobResult initJobResult = glacierClient.initiateJob(initJobRequest);
 		jobId = initJobResult.getJobId();
 		logger.info("Job ID: " + jobId);
+
+		assertTrue("Successfully completed.", true);
+	}
+	
+	/**
+	 * Initiate an inventory retrieval job in all vaults.
+	 * 
+	 * @throws IOException
+	 */
+	@Test
+//	@Ignore
+	public void testInitiateJobInventoryRetrievalInAllVaults() throws IOException {
+		String marker = null;
+		do {
+			ListVaultsRequest request = new ListVaultsRequest().withAccountId("-").withMarker(marker);
+			ListVaultsResult result = glacierClient.listVaults(request);
+			assertFalse("There are no vaults!", result.getVaultList().size() == 0);
+	
+			marker = result.getMarker();
+			for (DescribeVaultOutput vault : result.getVaultList()) {
+//				logger.info(String.format("Vault: %s", vault.getVaultName()));
+//				logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(vault));
+				InitiateJobRequest initJobRequest = new InitiateJobRequest()
+						.withAccountId("-").withVaultName(vault.getVaultName())
+						.withJobParameters(new JobParameters().withType("inventory-retrieval"));
+
+				InitiateJobResult initJobResult = glacierClient.initiateJob(initJobRequest);
+				logger.info(String.format("Vault: %s, Job ID:", vault.getVaultName(), initJobResult.getJobId()));
+			}
+		} while (marker != null);
 
 		assertTrue("Successfully completed.", true);
 	}

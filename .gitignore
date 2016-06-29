@@ -1,0 +1,6 @@
+/target/
+/.classpath
+/.project
+/.settings
+/src/test/resources/AwsCredentials.properties
+/src/test/resources/VaultsTest.properties
