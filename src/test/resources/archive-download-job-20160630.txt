@@ -1,0 +1,20 @@
+2016-06-30 15:09:27,317 INFO  [main] (VaultsTest.java:383) - Job ID: -k-vXzWdoLS3-aBnyI-LJ5WW8jq0GLvx5RtY526p40d5hpiqJgRzCYvvji7Zuyl17X7qJiCyfhjYp70iQAjwnUHcF0Wg
+2016-06-30 15:09:27,604 INFO  [main] (VaultsTest.java:388) - Job details:
+2016-06-30 15:09:27,647 INFO  [main] (VaultsTest.java:389) - {
+  "jobId" : "-k-vXzWdoLS3-aBnyI-LJ5WW8jq0GLvx5RtY526p40d5hpiqJgRzCYvvji7Zuyl17X7qJiCyfhjYp70iQAjwnUHcF0Wg",
+  "jobDescription" : null,
+  "action" : "ArchiveRetrieval",
+  "archiveId" : "0r0xLFou2h8FzSwpY_KrAez3qEGi33grrWmojJrQBV9RONZ9zKsGcE-h_L7rizL8TXIELhSDeiN4lPK5UaR-B80KBlwpfV0lyKoRQm9gkaaaWXDYs8yBxdTNHvCCq0sZ_rYo2XwGvQ",
+  "vaultARN" : "arn:aws:glacier:eu-west-1:013263306916:vaults/fourdhn5-2015-49",
+  "creationDate" : "2016-06-30T09:09:27.430Z",
+  "statusCode" : "InProgress",
+  "statusMessage" : null,
+  "archiveSizeInBytes" : 1539,
+  "inventorySizeInBytes" : null,
+  "completionDate" : null,
+  "archiveSHA256TreeHash" : "86672d93c0ec9c69d4dbe45154aea2041558ece7c230fea4e5918cfc2e7e8ccc",
+  "retrievalByteRange" : "0-1538",
+  "inventoryRetrievalParameters" : null,
+  "snstopic" : null,
+  "sha256TreeHash" : "86672d93c0ec9c69d4dbe45154aea2041558ece7c230fea4e5918cfc2e7e8ccc"
+}

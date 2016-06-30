@@ -273,7 +273,14 @@ public class VaultsTest {
 		logger.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(result));
 		
 		GetJobOutputRequest jorequest = new GetJobOutputRequest()
-				.withAccountId("-").withVaultName(vaultName).withJobId(jobId);
+				.withAccountId("-").withVaultName(vaultName).withJobId(jobId)
+//				.withRange(String.format("0-%d", result.getInventorySizeInBytes()))
+				.withGeneralProgressListener((ProgressEvent e) -> {
+						// TODO Auto-generated method stub
+						System.out.println(String.format("Event type: %s, Bytes: %d, BytesTransferred: %d", 
+								e.getEventType(), e.getBytes(), e.getBytesTransferred()));
+					}
+				);
 		GetJobOutputResult joresult = glacierClient.getJobOutput(jorequest);
 
 		StringBuilder sb = new StringBuilder();
