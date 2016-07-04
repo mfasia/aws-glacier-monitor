@@ -1,6 +1,7 @@
 [04-Jul-2016]
 * [TA] Added PGP/GnuPG encryption/decryption tests using Bouncy Castle.
 * NOTE: Do not commit keychains/keystores in Git repo.
+* [TA] Added test cases for listing gzipped tar file's contents. 
    
 [29-Jun-2016]
 * [TA] Download inventory (with event notification).

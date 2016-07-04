@@ -1,8 +1,10 @@
 package net.m4.aws.glacier;
 import java.io.FileInputStream;
 import java.util.Iterator;
+import java.util.zip.GZIPInputStream;
 
-import org.bouncycastle.openpgp.PGPPrivateKey;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.bouncycastle.openpgp.PGPSecretKey;
 import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
@@ -52,6 +54,18 @@ public class PGPTester {
 		System.out.println(p.verify());
 	}
 
+	@Test
+	public void testTarGzip() throws Exception {
+		TarArchiveInputStream tarIn = new TarArchiveInputStream(new GZIPInputStream(new FileInputStream(DE_OUTPUT)));
+		System.out.println(String.format("%s\t%s\t%s.%s", "Name", "Size", "UserId", "GroupId"));
+		TarArchiveEntry e = tarIn.getNextTarEntry();
+	    while (e != null) {
+	        System.out.println(String.format("%s\t%d\t%s.%s", e.getName(), e.getSize(), e.getUserId(), e.getGroupId()));
+	        e = tarIn.getNextTarEntry();
+	    }
+	    tarIn.close();
+	}
+	
 	@Test
 	public void testEncrypt() throws Exception {
 		PGPFileProcessor p = new PGPFileProcessor();
