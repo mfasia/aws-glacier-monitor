@@ -1,3 +1,7 @@
+[04-Jul-2016]
+* [TA] Added PGP/GnuPG encryption/decryption tests using Bouncy Castle.
+* NOTE: Do not commit keychains/keystores in Git repo.
+   
 [29-Jun-2016]
 * [TA] Download inventory (with event notification).
 * WARNING! AWS SDK version 1.11.1 is BROKEN!

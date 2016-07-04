@@ -455,7 +455,7 @@ public class VaultsTest {
 
             GetJobOutputRequest getJobOutputRequest = new GetJobOutputRequest()
                 .withVaultName(vaultName)
-                .withRange("bytes=" + startRange + "-" + endRange)
+                .withRange(String.format("bytes=%d-%d", startRange, endRange))
                 .withJobId(jobId);
             GetJobOutputResult getJobOutputResult = glacierClient.getJobOutput(getJobOutputRequest);
 

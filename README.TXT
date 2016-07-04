@@ -11,7 +11,9 @@ References:
 * http://docs.aws.amazon.com/amazonglacier/latest/dev/using-aws-sdk-for-java.html
 * http://docs.aws.amazon.com/IAM/latest/UserGuide/ManagingCredentials.html
 * http://wiki.fasterxml.com/JacksonMixInAnnotations
-* http://wiki.fasterxml.com/JacksonFeatureModules 
+* http://wiki.fasterxml.com/JacksonFeatureModules
+* http://sloanseaman.com/wordpress/2012/05/13/revisited-pgp-encryptiondecryption-in-java/
+* http://stackoverflow.com/questions/28444819/getting-bouncycastle-to-decrypt-a-gpg-encrypted-message 
 
 Perl:
 * http://www.clockworksms.com/blog/creating-perl-module-rpms/

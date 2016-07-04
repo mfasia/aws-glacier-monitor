@@ -4,3 +4,5 @@
 /.settings
 /src/test/resources/AwsCredentials.properties
 /src/test/resources/VaultsTest.properties
+/src/test/resources/pgp/*.pkr
+/src/test/resources/pgp/*.skr
